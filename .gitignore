@@ -1,0 +1,6 @@
+out/
+run_log.txt
+data/grid_bins.csv
+data/grid_events.csv
+data/grid_qc.csv
+__pycache__/
