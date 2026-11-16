@@ -1,9 +1,10 @@
-"""Reruns requested in pre-submission review (14 Nov 2026). Run after run_all.sh.
+"""Sensitivity checks added after the main results were seen (14 Nov 2026). Run after the other scripts.
 R1  Drop days with implausible outturn inertia: at least 40 of 48 half-hours below 90 GVA.s
     (whole-day faults; three June 2026 days with a few half-hours at 81-89 GVA.s are kept).
 R2  Cluster standard errors by week instead of by day.
 R3  Floor effect only where the floor binds: counterfactual inertia = max(market inertia, floor).
 R4  Floor effect (120 -> 102) across all reported specifications.
+R5  Drop 2022 (S3), with and without the R1 faulty days.
 """
 import json, sys, numpy as np, pandas as pd, statsmodels.formula.api as smf
 
@@ -49,7 +50,7 @@ for y in ["Y1", "Y2", "Y3", "Y4", "Y5", "Y6"]:
     r = era_model(y, c); r["floor_pct"] = floor(r["post"]); R["R1"][y] = r
 r = era_model("Y1", c, "logHa_pre", "logHa_post"); r["floor_pct"] = floor(r["post"]); R["R1"]["Y1_pathfinder_adj"] = r
 
-# ---- R2: week clustering (full pre-registered sample)
+# ---- R2: week clustering (full pre-specified sample)
 R["R2"] = {}
 for y in ["Y1", "Y5", "Y6"]:
     rd = era_model(y, b, cl="date"); rw = era_model(y, b, cl="week")
@@ -77,7 +78,7 @@ R["R3_share_Hm_below"] = {str(t): round(float((s.Hm < t).mean()), 3) for t in [1
 ew = json.load(open("out/explore_wind.json")); se_ = json.load(open("out/sens_eras_binscatter.json"))
 r0 = json.load(open("out/results.json")); a1 = json.load(open("out/a1_pathfinder.json"))
 spec = {
-    "pre-registered (pooled)": r0["main"]["Y1"]["post"]["b"],
+    "pre-specified (pooled)": r0["main"]["Y1"]["post"]["b"],
     "each era separately": se_["Y1_sep_post"][0],
     "Pathfinder-adjusted (A1)": a1["adj"]["post"][0],
     "market inertia (S3)": r0["S3"]["market_inertia"]["post"]["b"],
@@ -90,6 +91,11 @@ spec = {
 R["R4"] = {n: dict(beta_post=round(float(v_), 3), floor_pct=pct(v_)) for n, v_ in spec.items()}
 fp = [x["floor_pct"] for x in R["R4"].values()]
 R["R4_range"] = [min(fp), max(fp)]
+
+# ---- R5: drop 2022, with and without the faulty days
+no22 = b[sd.dt.year != 2022]
+R["R5"] = dict(drop2022=era_model("Y1", no22),
+               drop2022_and_faulty_days=era_model("Y1", no22[~no22.settlement_date.isin(bad_days)]))
 
 json.dump(R, open("out/review_reruns.json", "w"), indent=1)
 print(json.dumps(R, indent=1))

@@ -13,17 +13,17 @@ pip install -r requirements.txt
 ./run_all.sh
 ```
 
-It takes a few minutes. Outputs go to `out/`. Compare them with `results_reference/`, which holds the outputs used in the paper. A clean re-run from this repository matched the reference files exactly (13 Nov 2026).
+It takes a few minutes. Outputs go to `out/`. Compare them with `results_reference/`, which holds the outputs used in the paper. A clean re-run from this repository matched the reference files exactly (16 Nov 2026).
 
 ## What's here
 
 | Folder | Contents |
 |---|---|
 | `prereg/` | The written analysis plan, fixed before the one-second data were processed, and two addenda (each written before its own analysis was run). Not lodged with an external registry. |
-| `code/` | `pipeline.js`, `pipeline_v4.js`, `pass2.js`: the browser-side scripts that read NESO's one-second frequency files and reduced them to half-hour summaries and loss events. `split.py` unpacks their output. `analysis.py` is the pre-registered analysis. `a1_pathfinder.py`, `a2_dc.py`, `a3_mwgate.py` are the addendum analyses. `explore_wind.py` and `sens_eras_binscatter.py` are exploratory and sensitivity checks |
+| `code/` | `pipeline.js`, `pipeline_v4.js`, `pass2.js`: the browser-side scripts that read NESO's one-second frequency files and reduced them to half-hour summaries and loss events. `split.py` unpacks their output. `analysis.py` is the pre-specified analysis. `a1_pathfinder.py`, `a2_dc.py`, `a3_mwgate.py` are the addendum analyses. `explore_wind.py` and `sens_eras_binscatter.py` are exploratory and sensitivity checks |
 | `data/` | Inputs (see `DATA_SOURCES.md`) |
-| `verify/` | Scripts used for an independent check of the numbers |
-| `results_reference/` | Outputs used in the paper, the results summary, and the independent check report |
+| `verify/` | Scripts used for an AI-assisted re-derivation of the numbers (not an independent human review) |
+| `results_reference/` | Outputs used in the paper, the results summary, and the AI-assisted check report (`CHECK_REPORT.md`, written against an earlier draft). `sens_separate_eras.json` is an earlier copy of the era-by-era fit, now produced as `Y1_sep_*` in `sens_eras_binscatter.json` |
 
 ## Order of the analysis
 
@@ -33,7 +33,7 @@ It takes a few minutes. Outputs go to `out/`. Compare them with `results_referen
 4. `a2_dc.py` tests the Dynamic Containment delivery proxy (addendum 1, H4).
 5. `explore_wind.py`, `sens_eras_binscatter.py`: exploratory and sensitivity analyses, labelled as such in the paper.
 6. `a3_mwgate.py` tries to divide loss events by megawatts lost, using REMIT outage notices (addendum 2). It did not work; see the paper, Section 4.1.
-7. `review_reruns.py` runs the checks added after pre-submission review: dropping five days of faulty inertia data, grouping standard errors by week, and counting the floor effect only when the floor binds.
+7. `review_reruns.py` runs sensitivity checks added after the main results were seen: dropping days of faulty inertia data (40+ of 48 half-hours below 90 GVA.s), grouping standard errors by week, rerunning drop-2022 without the faulty days, and counting the floor effect only when the floor binds.
 
 The one-second files themselves are not included (several GB). `code/pipeline.js` documents exactly how they were reduced; the files are on NESO's data portal.
 
